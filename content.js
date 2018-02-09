@@ -217,6 +217,18 @@ optionCallbacks = {
       window.ceiling = data["follower-ceiling"];
       // console.log(`window.ceiling: ${window.ceiling}`);
       window.users = window.users || {};
+      // TODO: do things on tweets of users with followers > window.ceiling
+      Object.keys(window.users).forEach(function (userId) {
+        let userTweets = $(`li:has([data-user-id="${userId}"])`);
+        userTweets.addClass("tu");
+        if (window.ceiling > window.users[userId]) {
+          userTweets.addClass("keep");
+        }
+        else {
+          userTweets.addClass("lose");
+          userTweets.css("background-color", "#ffc");
+        }
+      });
       window.request = window.request || 0;
       window.queries = window.queries || [];
       window.inRequest = false;
@@ -256,7 +268,6 @@ optionCallbacks = {
                 userTweets.addClass("lose");
                 userTweets.css("background-color", "#ffc");
               }
-              userTweets.data("followers", followers);
             }
           }).fail(function () {
             console.log("failed AJAX request");
