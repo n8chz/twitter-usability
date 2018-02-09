@@ -18,7 +18,7 @@
  "content_scripts": [
   {
    "matches": ["*://*.twitter.com/*"],
-   "js": ["jquery.js", "content.js"]
+   "js": ["jquery.js", "underscore-min.js", "content.js"]
   },
   {
    "matches": ["*://*.twitter.com/*/lists/*"],

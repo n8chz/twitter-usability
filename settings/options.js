@@ -26,5 +26,15 @@ function restoreOptions() {
  });
 }
 
+// Handle the "prefer-small" option, which contains a numeric input:
+
+chrome.storage.local.get("follower-ceiling", function (ceiling) {
+  $("#follower-ceiling").val(Number(ceiling["follower-ceiling"]));
+});
+
+$("#follower-ceiling").change(function () {
+  chrome.storage.local.set({"follower-ceiling": $("#follower-ceiling").val()});
+});
+
 document.addEventListener("DOMContentLoaded", restoreOptions);
 
