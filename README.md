@@ -1,4 +1,4 @@
-This is a WebExtension (browser extension) for Firefox and [Chromium/Chrome](https://chrome.google.com/webstore/detail/hhockakmlacjbpmkahbefapdechlogbd/publish-accepted?hl=en-GB) which provides the following features:
+This is a WebExtension (browser extension) for [Firefox](https://addons.mozilla.org/en-US/firefox/addon/all-trending-tweets/) and [Chromium/Chrome](https://chrome.google.com/webstore/detail/hhockakmlacjbpmkahbefapdechlogbd/publish-accepted?hl=en-GB) which provides the following features:
 
 * Option of fading to 20% opacity promoted tweets, promoted accounts and (I think, still) promoted trends
 * Option of making links within Twitter to Twitter accounts link to the "with\_replies" version of the account profile instead of the default one which doesn't include replies.
