@@ -1,3 +1,4 @@
+
 // see https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Implement_a_settings_page
 
 // if one of the checkboxes is clicked, store the new value of the
@@ -29,7 +30,7 @@ function restoreOptions() {
 // Handle the "prefer-small" option, which contains a numeric input:
 
 chrome.storage.local.get("follower-ceiling", function (ceiling) {
-  $("#follower-ceiling").val(Number(ceiling["follower-ceiling"]));
+  $("#follower-ceiling").val(Number(ceiling["follower-ceiling"] || 5000));
 });
 
 $("#follower-ceiling").change(function () {

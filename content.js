@@ -28,101 +28,17 @@ function makeVideoLink(videoURL) {
  return videoLink;
 }
 
-function processNextTweet() {
-  let newTweets = $("li").not(".tu").has("a.account-group");
-  if (newTweets.length) {
-    console.log(`${newTweets.length} new tweets`);
-    let firstNewTweet = newTweets.first();
-    let accountGroup = firstNewTweet.find("a.account-group");
-    if (accountGroup) {
-      let userId = accountGroup.data("user-id");
-      if (userId) { // if no userId we're probably not looking at a tweet
-        let followers = window.users[userId];
-        if (followers) { // we already know this user's follower count
-          let keep = (followers < window.ceiling);
-          let userTweets = $("li").not(".tu").has(`[data-user-id="${userId}"]`);
-          userTweets.addClass(keep ? "keep" : "lose").addClass("tu");
-          processNextTweet();
-        }
-        else { // do request to find out user's follower count
-          let popupUrl = `https://twitter.com/i/profiles/popup?user_id=${userId}`;
-          $.get({
-            url: popupUrl,
-            success: function (data) {
-              // console.log(JSON.stringify(data));
-              let html = JSON.parse(data).html;
-              // console.log(`${html.slice(0,10)}...${html.slice(-10)}`);
-              let doc = $(html);
-              // console.log(doc.length);
-              let statsAnchor = doc.find("[data-element-term='follower_stats']");
-              let followers = $(".ProfileCardStats-statValue", statsAnchor).data("count");
-              console.log(`${followers} followers`);
-              window.users[userId] = followers;
-              console.log(`up to ${Object.keys(window.users).length} users!`);
-              userTweets = $(`li:has[data-user-id="${userId}"]`);
-              userTweets.addClass("tu");
-              if (window.ceiling > followers) {
-                userTweets.addClass("keep");
-              }
-              else {
-                userTweets.addClass("lose");
-                userTweets.css("border", "10px solid green");
-                $(`<p>${followers}</p>`).appendTo(accountGroup);
-              }
-              userTweets.data("followers", followers);
-              processNextTweet();
-            }
-          }).fail(function () {
-            console.log("failed AJAX request");
-          });
-        }
-      }
+function arrayDiff(array1, array2) {
+  let value = [];
+  array1.forEach(function (x) {
+    if (array2.indexOf(x) == -1) {
+      value.push(x);
     }
-  }
+  });
+  return value;
 }
 
-// Process tweets that are new to this mutation
-// Tweets from previous mutations should have been marked with class "tu"
-function processNewTweets(streamItems) {      
-  newStreamItems = streamItems.not(".tu");
-  console.log(`newStreamItems.length: ${newStreamItems.length}`);
-  if (newStreamItems.length) {
-    let streamItem = newStreamItems.first();
-    console.log(streamItem.attr("class"));
-    // if (!streamItem.hasClass("copy-link-to-tweet")) {
-    if (true) {
-      let accountGroup = streamItem.find("a.account-group");
-      // console.log(accountGroup.get(0).outerHTML);
-      let userId = accountGroup.data("user-id");
-      // console.log(`userId: ${userId}`);
-      // if (userId) {
-      if (true) {
-        let popupUrl = `https://twitter.com/i/profiles/popup?user_id=${userId}`
-        console.log(popupUrl);
-        $.get({
-          url: popupUrl,
-          success: function (data) {
-            // console.log(JSON.stringify(data));
-            let html = JSON.parse(data).html;
-            // console.log(`${html.slice(0,10)}...${html.slice(-10)}`);
-            let doc = $(html);
-            // console.log(doc.length);
-            let statsAnchor = doc.find("[data-element-term='follower_stats']");
-            let followers = $(".ProfileCardStats-statValue", statsAnchor).data("count");
-            window.users[userId] = followers;
-            userTweets = $(`li:has[data-user-id="${userId}"]`);
-            userTweets.addClass("tu");
-            userTweets.addClass(window.ceiling > followers ? "keep" : "lose");
-            userTweets.data("followers", followers);
-            processNewTweets(newStreamItems);
-          }
-        }).fail(function () {
-          console.log("failed AJAX request");
-        });
-      }
-    }
-  }
-}
+
 
 optionCallbacks = {
  "with-replies": function () {
@@ -207,12 +123,9 @@ optionCallbacks = {
  },
  // New:
  "prefer-small": function () { // h/t Chuck Baggett https://twitter.com/ChuckBaggett/status/958156853455843328
-    /*
-    $("[data-user-id]").each(function () {
-      if ($(this).attr("data-user-id").length)
-        console.log(`<${$(this).get(0).tagName}> element: class="${$(this).attr('class')}" data-user-id="${$(this).attr('data-user-id')}"`);
-    });
-    */
+    // Hoping to avoid getting swamped by mutations coming in faster than we can process them:
+    if (window.bizzy) return;
+    window.bizzy = true;
     chrome.storage.local.get("follower-ceiling", function (data) {
       window.ceiling = data["follower-ceiling"];
       // console.log(`window.ceiling: ${window.ceiling}`);
@@ -220,30 +133,32 @@ optionCallbacks = {
       // TODO: do things on tweets of users with followers > window.ceiling
       Object.keys(window.users).forEach(function (userId) {
         let userTweets = $(`li:has([data-user-id="${userId}"])`);
-        userTweets.addClass("tu");
         if (window.ceiling > window.users[userId]) {
           userTweets.addClass("keep");
         }
         else {
-          userTweets.addClass("lose");
-          userTweets.css("background-color", "#ffc");
+          // userTweets.addClass("lose");
+          // userTweets.css("background-color", "#ffc");
+          userTweets.remove();
         }
       });
       window.request = window.request || 0;
       window.queries = window.queries || [];
       window.inRequest = false;
-      console.log(`${_.keys(window.users).length} known users`);
+      // console.log(`${_.keys(window.users).length} known users`);
       window.userRequests = window.userRequests || [];
       // Get list of all users in stream
-      userList = $("#stream-items-id li a.account-group").map(function () {
+      userList = $("#stream-items-id li").not(".tu").find("a.account-group").map(function () {
         return $(this).data("user-id");
       }).get();
       // console.log(`_.keys(window.users): ${_.keys(window.users)}`);
-      newUsers = _.difference(userList, _.keys(window.users));
-      // console.log(JSON.stringify(newUsers));
-      _.each(newUsers, function (userId) {
+      newUsers = arrayDiff(userList, Object.keys(window.users));
+      console.log(`newUsers: ${JSON.stringify(newUsers)}`);
+      // _.each(newUsers, function (userId) {
+      newUsers.forEach(function (userId, index, array) {
         window.userRequests.push(userId);
-        if (!_.contains(window.queries, userId)) {
+        // if (!_.contains(window.queries, userId)) {
+        if (window.queries.indexOf(userId) == -1) {
           window.queries.push(userId);
           let popupUrl = `https://twitter.com/i/profiles/popup?user_id=${userId}`;
           $.get({
@@ -262,53 +177,28 @@ optionCallbacks = {
               userTweets = $(`li:has([data-user-id="${userId}"])`);
               userTweets.addClass("tu");
               if (window.ceiling > followers) {
-                userTweets.addClass("keep");
+                // userTweets.addClass("keep");
               }
               else {
-                userTweets.addClass("lose");
-                userTweets.css("background-color", "#ffc");
+                // userTweets.addClass("lose");
+                // userTweets.css("background-color", "#ffc");
+                userTweets.remove();
               }
+              window.bizzy = false;
             }
           }).fail(function () {
             console.log("failed AJAX request");
             // TODO: remove userId from window.queries
+            window.queries = window.queries.filter(function (x) {
+              x !== userId;
+            });
+            window.bizzy = false;
           });
         }
       });
-      // processNextTweet();
+      window.bizzy = false;
     });
  }
- // Old:
- /*
- "prefer-small": function () { // h/t Chuck Baggett https://twitter.com/ChuckBaggett/status/958156853455843328
-    chrome.storage.local.get("follower-ceiling", function (ceiling) {
-      console.log(`ceiling: ${JSON.stringify(ceiling)}`);
-      window.users = window.users || {};
-      $(".stream-item").each(function () {
-        let streamItem = $(this);
-        let accountGroup = streamItem.find("a.account-group");
-        let userId = accountGroup.data("user-id");
-        if (userId && !window.users[userId]) {
-          let popupUrl = `https://twitter.com/i/profiles/popup?user_id=${userId}`
-          $.get({
-            url: popupUrl,
-            success: function (data) {
-              let html = JSON.parse(data).html;
-              let doc = $(html);
-              let statsAnchor = doc.find("[data-element-term='follower_stats']");
-              let followers = $(".ProfileCardStats-statValue", statsAnchor).data("count");
-              window.users[userId] = followers;
-              if (followers > Number(ceiling["follower-ceiling"])) {
-                streamItem.hide();
-              }
-              streamItem.data("followers", followers);
-            }
-          });
-        }
-      });
-    });
- }
-*/
  // Twitter extension idea: https://twitter.com/pookleblinky/status/959487077632135169
 };
 
