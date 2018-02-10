@@ -57,7 +57,6 @@ optionCallbacks = {
   // By default, hashtag and search links go to "top tweets."
   // With this option turned on, we make them go to "latest" instead:
   $(".u-linkComplex").parent().not("[href$='&f=tweets']").each(function () {
-    // console.log($(this).get(0).outerHTML);
     $(this).attr("href", $(this).attr("href")+"&f=tweets");
   });
   $("[href*='hashtag']").not("[href$='&f=tweets']").each(function () {
@@ -82,7 +81,6 @@ optionCallbacks = {
   var mediaElement = $(".has-autoplayable-media");
   // Mark tweet as one containing otherwise autoplaying video:
   mediaElement.parent().css("background-color", "#cff");
-  // console.log(`mediaElement: ${mediaElement.get(0).outerHTML}`);
   // src attribute of the <iframe> points to a file that contains the video URL
   var iframe = mediaElement.find("iframe");
   if (iframe.length) {
@@ -107,7 +105,6 @@ optionCallbacks = {
   }
   $(".PlayableMedia-player").each(function () {
     return undefined;
-    // console.log $(this).style.backgroundImage;
   });
  },
  "extreme-prejudice": function () {
@@ -128,7 +125,6 @@ optionCallbacks = {
     window.bizzy = true;
     chrome.storage.local.get("follower-ceiling", function (data) {
       window.ceiling = data["follower-ceiling"];
-      // console.log(`window.ceiling: ${window.ceiling}`);
       window.users = window.users || {};
       // TODO: do things on tweets of users with followers > window.ceiling
       Object.keys(window.users).forEach(function (userId) {
@@ -145,15 +141,12 @@ optionCallbacks = {
       window.request = window.request || 0;
       window.queries = window.queries || [];
       window.inRequest = false;
-      // console.log(`${_.keys(window.users).length} known users`);
       window.userRequests = window.userRequests || [];
       // Get list of all users in stream
       userList = $("#stream-items-id li").not(".tu").find("a.account-group").map(function () {
         return $(this).data("user-id");
       }).get();
-      // console.log(`_.keys(window.users): ${_.keys(window.users)}`);
       newUsers = arrayDiff(userList, Object.keys(window.users));
-      console.log(`newUsers: ${JSON.stringify(newUsers)}`);
       // _.each(newUsers, function (userId) {
       newUsers.forEach(function (userId, index, array) {
         window.userRequests.push(userId);
@@ -164,16 +157,11 @@ optionCallbacks = {
           $.get({
             url: popupUrl,
             success: function (data) {
-              console.log(`request ${window.request++} for ${userId}`);
               let html = JSON.parse(data).html;
-              // console.log(`${html.slice(0,10)}...${html.slice(-10)}`);
               let doc = $(html);
-              // console.log(doc.length);
               let statsAnchor = doc.find("[data-element-term='follower_stats']");
               let followers = $(".ProfileCardStats-statValue", statsAnchor).data("count");
-              // console.log(`${followers} followers`);
               window.users[userId] = followers;
-              // console.log(`up to ${Object.keys(window.users).length} users!`);
               userTweets = $(`li:has([data-user-id="${userId}"])`);
               userTweets.addClass("tu");
               if (window.ceiling > followers) {
