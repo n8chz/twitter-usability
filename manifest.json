@@ -1,6 +1,6 @@
 {
  "name" : "Twitter usability suite",
- "version" : "1.0.2",
+ "version" : "1.0.5",
  "description" : "Tools for making Twitter usable",
  "homepage_url": "https://astoundingteam.com/",
  "permissions": [
@@ -18,7 +18,7 @@
  "content_scripts": [
   {
    "matches": ["*://*.twitter.com/*"],
-   "js": ["jquery.js", "underscore-min.js", "content.js"]
+   "js": ["jquery.js", "content.js"]
   },
   {
    "matches": ["*://*.twitter.com/*/lists/*"],

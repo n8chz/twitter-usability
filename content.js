@@ -41,6 +41,15 @@ function arrayDiff(array1, array2) {
 
 
 optionCallbacks = {
+  "virgin-tweets": function () {
+    // https://twitter.com/tyronem/status/962725402656628738
+    $("#stream-items-id li").not(".visited").each(function () {
+      $(this).addClass("visited");
+      if ($(this).find("[data-tweet-stat-count=0]").length == 3) {
+        $(this).css("background-color", "#fc9");
+      }
+    });
+  },
  "with-replies": function () {
   // By default, a user profile filters out tweets
   // that are replies to other tweets.
